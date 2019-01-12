@@ -1,0 +1,189 @@
+/**
+ * JJTree template file created by SF JavaCC plugin 1.5.28+ wizard for JavaCC 1.5.0+
+ */options{  static = true;}PARSER_BEGIN(CMM)package CMMParser;
+
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+
+public class CMM{  public static void main(String args [])  {
+    FileInputStream fileStream;
+    try {
+      fileStream = new FileInputStream("F:\\s.txt");
+      CMM parser = new CMM(fileStream);
+      System.out.println("Reading from file");
+      try {
+        SimpleNode rootNode = parser.Start();
+        rootNode.dump(" ");
+      }catch(Exception e) {
+        System.out.println("NOK.");
+        System.out.println(e.getMessage());
+      }catch(Error e) {
+        System.out.println("Oops.");
+        System.out.println(e.getMessage());
+      }
+      }catch(FileNotFoundException e1) {
+		e1.printStackTrace();
+      }//    System.out.println("Reading from standard input...");
+//    System.out.print("Enter an expression like \"1+(2+3)*var;\" :");
+//    new CMM(System.in);
+//    try
+//    {
+//      SimpleNode n = CMM.Start();
+//      n.dump("");
+//      System.out.println("Thank you.");
+//    }
+//    catch (Exception e)
+//    {
+//      System.out.println("Oops.");
+//      System.out.println(e.getMessage());
+//    }
+  }}PARSER_END(CMM)SKIP :{  " "| "\t"| "\n"| "\r"| < "//" (~[ "\n", "\r" ])*    (      "\n"    | "\r"    | "\r\n"    ) >| < "/*" (~[ "*" ])* "*"    (      ~[ "/" ] (~[ "*" ])* "*"    )*    "/" >}
+
+TOKEN :
+{
+    < CONSTANT: ( <DIGIT> )+ >
+|   < DIGIT: ["0" - "9"] >
+}
+TOKEN : /* LITERALS */
+{
+  < INTEGER_LITERAL :
+    < DECIMAL_LITERAL > ([ "l", "L" ])?
+  | < HEX_LITERAL > ([ "l", "L" ])?
+  | < OCTAL_LITERAL > ([ "l", "L" ])? 
+    >
+| < #DECIMAL_LITERAL : [ "1"-"9" ] ([ "0"-"9" ])* >
+| < #HEX_LITERAL : "0" [ "x", "X" ] ([ "0"-"9", "a"-"f", "A"-"F" ])+ >
+| < #OCTAL_LITERAL : "0" ([ "0"-"7" ])* >
+}
+ 
+TOKEN : /* KEYWORDS */
+{
+  
+    < READ : "read">
+  | < WRITE : "write">
+  | < INT : "int">
+  | < REAL: "real" >
+  | < IF:"if">
+  | < ELSE:"else" >
+  | < WHILE:"while" >
+}
+ 
+TOKEN : /* OPERATORS */
+{
+  	< PLUS:"+">
+  | < MINUS:"-">
+  | < MULTIPLY:"*">
+  | < DIVIDE:"/">
+  | < ASSIGN:"=">
+}
+TOKEN : /* RELATIONSHIPOPERATOR */
+{
+	< LT:"<"  >
+  | < LE:"<=" >
+  | < GT:">"  >
+  | < GE:"=>" >
+  | < EQ:"==" >
+  | < NE:"!=" >    
+}
+ 
+TOKEN : /* IDENTIFIERS */
+{
+  < IDENTIFIER :
+    < LETTER >
+    (
+      < LETTER >
+    | < DIGIT >
+    )* >
+| < #LETTER : [ "_", "a"-"z", "A"-"Z" ] >
+}
+TOKEN:
+{
+  <LC:"(">
+  | <RC:")">
+  | <LM:"[">
+  | <RM:"]">
+  | <LB:"{">
+  | <RB:"}">
+}
+SimpleNode Start() :
+{}
+{
+  Expression()
+  {
+    return jjtThis;
+  }
+}
+ 
+void Expression() :
+{}
+{
+   startStatement()
+}
+ 
+void startStatement():{}
+{
+	Statement()//|(MainStatement())*		
+}
+void Statement(): { }
+{
+	  (
+	    SequenceStatement()				//顺序语句
+		| IfStatement()					//条件语句
+		| While()						//循环语句
+	  )*								
+}
+//顺序
+void SequenceStatement(): { }
+{
+	(declaration()|copy()) ";"			//声明和赋值
+}
+void declaration() : { }
+{
+	//(< INT> < IDENTIFIER> )
+ ((< INT> |< REAL >)< IDENTIFIER> ("," < IDENTIFIER >)* < ASSIGN>< CONSTANT> )
+}
+void copy(): { }
+{
+	< IDENTIFIER>< ASSIGN> (< CONSTANT>|< IDENTIFIER>)
+}
+//条件
+void IfStatement():{}
+{
+  	< IF>< LC>Condition()< RC>< LB>(assign() ";")< RB> ElseStatement()
+}
+void ElseStatement(): { }
+{
+  	< ELSE> (< LB> assign() ";" < RB>)|IfStatement()
+}
+void assign(): { }
+{
+	< IDENTIFIER>< ASSIGN>(< CONSTANT>|< IDENTIFIER>)
+}
+void Condition() :{ }
+{
+	expression() (
+		< LT> expression()|
+		< LE> expression()|
+		< GT> expression()|
+		< GE> expression()|
+		< EQ> expression()|
+		< NE> expression()
+	)
+}
+void expression(): { }
+{
+	term()((< PLUS >|< MINUS > term()))* 
+}
+void term(): { }
+{
+	unary()(( < MULTIPLY >|< DIVIDE> ) unary())*
+}
+void unary() :{ }
+{
+	< IDENTIFIER> | < CONSTANT>|< LC>expression()< RC>
+}
+//循环
+void While():{}
+{
+	< WHILE>< LC>Condition()< RC>< LB>(copy()";")< RB>
+}

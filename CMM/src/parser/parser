@@ -1,0 +1,18 @@
+递归下降的程序分析法：
+Program ->	Stmt{Stmt}
+Stmt	->	VarDecl|IfStmt|WhileStmt|BreakStmt|AssignStmt|ReadStmt|WriteStmt|StmtBlock
+StmtBlock	->	{{Stmt}}
+VarDecl	->	Type VarList;
+Type	->	int T|real T
+T	->	[intconstant] T|null
+Varlist	->	ident[=Expr]{,ident[=Expr]}
+IfStmt	->	if(Expr)StmtBlock[else StmtBlock]
+WhileStmt	->	while(Expr)StmtBlock
+BreakStmt	->	break;
+ReadStmt	->	read(Value);
+WriteStmt	->	write(Expr);
+AssignStmt	->	Value = Expr;
+Value	->	ident{[Expr]}
+Constant	->	intconstant|realconstant|true|false
+Expr	->	-Expr E|Value E|Constant E|(Expr)E
+E	->	+Expr E|-Expr E|*Expr E|/Expr E|<=Expr E|<Expr E|>Expr E|>=Expr E|<>Expr E|==Expr E|null
